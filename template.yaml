@@ -1,0 +1,54 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: test-scaffolder-relation-action
+  title: Test Template Scaffolder Relation Action
+  description: A test template to test the scaffolder relation action
+  tags:
+    - scaffolder-relation
+    - test
+spec:
+  owner: janus-authors
+  system: janus-idp
+  type: service
+
+  parameters:
+    - title: Provide information about the new component
+      required:
+        - orgName
+        - repoName
+      properties:
+        orgName:
+          title: Organization Name
+          type: string
+        repoName:
+          title: Repository Name
+          type: string
+  steps:
+    - id: fetch-catalog-info
+      name: Fetch the catalog-info.yaml
+      action: fetch:template
+    - id: append-templateRef
+      name: Append the entityRef of this template to the entityRef
+      action: catalog:scaffolded-from
+    - id: publish
+      name: Publishing to the Source Code Repository
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        repoUrl: github.com?owner=${{ parameters.orgName }}&repo=${{ parameters.repoName }}
+        defaultBranch: main
+
+    - id: register
+      name: Registering the Catalog Info Component
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: ./catalog-info.yaml
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
