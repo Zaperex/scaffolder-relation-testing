@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: scaffolder-relation-testing-2
+  title: Test Component for Scaffolder Relations
+  description: |
+    This is a test component
+spec:
+  type: service
+  system: janus-idp
+  owner: janus-authors
+  lifecycle: development
