@@ -1,52 +1,85 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: test-scaffolder-relation-action
-  title: Test Template Scaffolder Relation Action
-  description: A test template to test the scaffolder relation action
+  name: docs-template
+  title: Documentation Template
+  description: Create a new standalone documentation project
   tags:
-    - scaffolder-relation
-    - test
+    - recommended
+    - techdocs
+    - mkdocs
 spec:
-  owner: janus-authors
-  system: janus-idp
-  type: service
+  owner: backstage/techdocs-core
+  type: documentation
 
   parameters:
-    - title: Provide information about the new component
+    - title: Fill in some steps
       required:
-        - orgName
-        - repoName
+        - name
+        - description
       properties:
-        orgName:
-          title: Organization Name
+        name:
+          title: Name
           type: string
-        repoName:
-          title: Repository Name
+          description: Unique name of the component
+          ui:field: EntityNamePicker
+          ui:autofocus: true
+        description:
+          title: Description
           type: string
+          description: A description for the component
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the component
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  # This template is meant to be used on top of an existing template.
+  # By adding the following and fetching from an absolute URL you can
+  # add in the docs template
   steps:
-    - id: fetch-catalog-info
-      name: Fetch the catalog-info.yaml
+    - id: fetch
+      name: Template Docs Skeleton
       action: fetch:template
       input:
-        url: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/tree/main/templates/github/nodejs-backend/skeleton
+        url: https://github.com/backstage/software-templates/tree/main/scaffolder-templates/docs-template/skeleton
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          owner: ${{ parameters.owner }}
     - id: append-templateRef
       name: Append the entityRef of this template to the entityRef
       action: catalog:scaffolded-from
     - id: publish
-      name: Publishing to the Source Code Repository
+      name: Publish
       action: publish:github
       input:
-        allowedHosts: ['github.com']
-        repoUrl: github.com?owner=${{ parameters.orgName }}&repo=${{ parameters.repoName }}
-        defaultBranch: main
+        allowedHosts: ["github.com"]
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
 
     - id: register
-      name: Registering the Catalog Info Component
+      name: Register
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
-        catalogInfoPath: ./catalog-info.yaml
+        catalogInfoPath: "/catalog-info.yaml"
+
   output:
     links:
       - title: Repository
