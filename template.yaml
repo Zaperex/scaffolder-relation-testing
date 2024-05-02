@@ -28,6 +28,8 @@ spec:
     - id: fetch-catalog-info
       name: Fetch the catalog-info.yaml
       action: fetch:template
+      input:
+        url: https://github.com/redhat-developer/red-hat-developer-hub-software-templates/tree/main/templates/github/nodejs-backend/skeleton
     - id: append-templateRef
       name: Append the entityRef of this template to the entityRef
       action: catalog:scaffolded-from
